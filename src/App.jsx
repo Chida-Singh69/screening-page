@@ -331,7 +331,7 @@ const ContactForm = ({ formData, updateFormData, onNext, languageMap }) => {
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => updateFormData("phone", e.target.value)}
-                placeholder="+1 (555) 123-4567"
+                placeholder="+91 7406722955"
                 required
               />
             </div>
@@ -557,14 +557,14 @@ const ResultsPage = ({ formData }) => {
             <div className="contact-info">
               <div className="contact-item">
                 <span className="contact-icon">Email:</span>
-                <span>support@giftolexia.com</span>
+                <span>info@giftolexia.com</span>
               </div>
               <div className="contact-item">
                 <span className="contact-icon">Phone:</span>
-                <span>(555) 123-4567</span>
+                <span>91 7406722955</span>
               </div>
             </div>
-            <button className="btn btn-secondary">Schedule Consultation</button>
+            {/* <button className="btn btn-secondary">Schedule Consultation</button> */}
           </div>
         </div>
 
@@ -593,8 +593,8 @@ const ResultsPage = ({ formData }) => {
 
       <div className="results-footer">
         <div className="action-buttons">
-          <button className="btn btn-primary">Download Report</button>
-          <button className="btn btn-success">Email Results</button>
+          {/* <button className="btn btn-primary">Download Report</button> */}
+          {/* <button className="btn btn-success">Email Results</button> */}
         </div>
       </div>
     </div>
