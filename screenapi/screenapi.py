@@ -44,7 +44,7 @@ def get_survey_json(lang_code, age_grp):
         print(f"Error:{e}")
         return json_txt, 404
 
-    return json_txt
+    return Response(json_txt, mimetype='application/json')
 
 # POST Survey answers - calculate and return score + recommendation
 @app.route("/survey",  methods=['POST'])

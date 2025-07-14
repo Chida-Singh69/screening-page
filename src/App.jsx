@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 
 // Configuration
-const API_BASE_URL = "http://localhost:5000"; // Change this to your backend URL
+const API_BASE_URL = "http://192.168.1.64:5000/"; // Change this to your backend URL
 
 const App = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -391,15 +391,21 @@ const QuestionnairePage = ({
   onSubmit,
 }) => {
   const options = ["Never", "Sometimes", "Often", "Always"];
+  const questionRefs = React.useRef([]);
 
   const handleSubmit = async () => {
     // Check if all questions are answered
-    const unansweredQuestions = questions.filter(
+    const unansweredIndex = questions.findIndex(
       (_, index) => formData.answers[index] === undefined
     );
 
-    if (unansweredQuestions.length > 0) {
+    if (unansweredIndex !== -1) {
       alert("Please answer all questions before proceeding.");
+      // Scroll to the first unanswered question
+      if (questionRefs.current[unansweredIndex]) {
+        questionRefs.current[unansweredIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+        questionRefs.current[unansweredIndex].focus?.();
+      }
       return;
     }
 
@@ -437,7 +443,12 @@ const QuestionnairePage = ({
 
       <div className="questions-grid">
         {questions.map((question, index) => (
-          <div key={index} className="question-row">
+          <div
+            key={index}
+            className="question-row"
+            ref={el => (questionRefs.current[index] = el)}
+            tabIndex={-1}
+          >
             <div className="question-text">
               <span className="question-number">{index + 1}.</span>
               {typeof question === "string"
