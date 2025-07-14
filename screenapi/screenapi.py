@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, make_response, Response
+from flask import Flask, request, jsonify, make_response, Response, send_from_directory
 import json
 from flask_cors import CORS
 #from flask_cors.core import LOG
@@ -15,34 +15,31 @@ app = Flask(__name__)
 CORS(app)
 
 
-@app.route("/")
-def hello():
-    return "<h1 style='color:blue'>API Server for screen app</h1>"
+# @app.route("/")
+# def hello():
+#     return "<h1 style='color:blue'>API Server for screen app</h1>"
 
 
 #Fetch and return the right json file 
 @app.route("/survey/<lang_code>/<age_grp>", methods=['GET'])
 def get_survey_json(lang_code, age_grp):
     json_txt = None
-    json_path="/home/ubuntu/screenapi/assets/"
-    filename = "survey/{}/{}.json".format(lang_code, age_grp)
-    full_path = os.path.join(json_path,filename)
+    # Use a relative path for assets
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    json_path = os.path.join(base_dir, "assets")
+    filename = f"survey/{lang_code}/{age_grp}.json"
+    full_path = os.path.join(json_path, filename)
     print(f"Retrieving survey questions: {full_path}")
     try:
-        #try to open the file
         assert os.path.isfile(full_path), f"Requested json file {full_path} not found"
-        fh = open(full_path, "r")
-        json_txt = fh.read()
-        fh.close()
-
-        #print(json_txt)
-        #print(type(json_txt))
+        with open(full_path, "r", encoding="utf-8") as fh:
+            json_txt = fh.read()
     except AssertionError as ae:
         print(ae)
-        return json_txt, 404
+        return jsonify({"error": str(ae)}), 404
     except Exception as e:
         print(f"Error:{e}")
-        return json_txt, 404
+        return jsonify({"error": str(e)}), 404
 
     return Response(json_txt, mimetype='application/json')
 
@@ -82,10 +79,19 @@ def eval_survey_answers():
 
     return jsonify(result)
 
-
+# Serve React static files
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react(path):
+    static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend', 'dist')
+    if path != "" and os.path.exists(os.path.join(static_folder, path)):
+        return send_from_directory(static_folder, path)
+    else:
+        return send_from_directory(static_folder, 'index.html')
 
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0')
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
