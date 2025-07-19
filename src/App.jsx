@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 
 // Configuration
-const API_BASE_URL = "/"; // or just use "" (empty string) if you always append the endpoint
+const API_BASE_URL = ""; // or just use "" (empty string) if you always append the endpoint
 
 const App = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -76,36 +76,43 @@ const App = () => {
   };
 
   const fetchQuestions = async () => {
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    try {
-      const ageGroup = getAgeGroup(formData.age);
-      const langCode = formData.language;
+  try {
+    const ageGroup = getAgeGroup(formData.age);
+    const langCode = formData.language;
 
-      console.log(
-        `Fetching questions for age group: ${ageGroup}, language: ${langCode}`
-      );
+    console.log(
+      `Fetching questions from ${API_BASE_URL}/survey/${langCode}/${ageGroup}`
+    );
 
-      const response = await fetch(
-        `${API_BASE_URL}/survey/${langCode}/${ageGroup}`
-      );
+    const response = await fetch(
+      `${API_BASE_URL}/survey/${langCode}/${ageGroup}`
+    );
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch questions: ${response.status}`);
-      }
+    console.log("Response status:", response.status);
 
-      const questionsData = await response.json();
-      console.log("Questions received:", questionsData);
-
-      setQuestions(questionsData.questions || questionsData);
-    } catch (err) {
-      console.error("Error fetching questions:", err);
-      setError("Failed to load questions. Please try again.");
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch questions: ${response.status}`);
     }
-  };
+
+    const questionsData = await response.json();
+    console.log("Raw questionsData:", questionsData);
+
+    // ✅ If your JSON is a direct array, not an object with "questions"
+    setQuestions(
+      Array.isArray(questionsData)
+        ? questionsData
+        : questionsData.questions || []
+    );
+  } catch (err) {
+    console.error("Error fetching questions:", err);
+    setError("Failed to load questions. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const submitSurvey = async () => {
     setLoading(true);
