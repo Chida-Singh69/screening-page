@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 
 // Configuration
-const API_BASE_URL = ""; // Use relative path for same-origin requests
+const API_BASE_URL = "http://192.168.1.64:5000/"; // Use relative path for same-origin requests
 
 const App = () => {
   const [currentStep, setCurrentStep] = useState(1);

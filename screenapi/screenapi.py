@@ -15,9 +15,9 @@ app = Flask(__name__)
 CORS(app)
 
 
-# @app.route("/")
-# def hello():
-#     return "<h1 style='color:blue'>API Server for screen app</h1>"
+@app.route("/")
+def hello():
+    return "<h1 style='color:blue'>API Server for screen app</h1>"
 
 
 #Fetch and return the right json file 
