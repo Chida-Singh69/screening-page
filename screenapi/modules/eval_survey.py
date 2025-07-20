@@ -8,7 +8,11 @@ def eval_agegroup1(data, threshold):
     for item in data['survey']:
         if not item:
             continue
-        score = score + option_scores[item["option_id"]]	
+        option_id = item["option_id"]
+        if option_id not in option_scores:
+            print(f"Warning: Invalid option_id {option_id} received, skipping")
+            continue
+        score = score + option_scores[option_id]	
     result={
 	"score": score,
 	"action": "ok" if score < threshold else "cta",
@@ -25,7 +29,11 @@ def eval_agegroup2(data, threshold):
     for item in data['survey']:
         if not item:
             continue
-        score = score + option_scores[item["option_id"]]	
+        option_id = item["option_id"]
+        if option_id not in option_scores:
+            print(f"Warning: Invalid option_id {option_id} received, skipping")
+            continue
+        score = score + option_scores[option_id]	
     result={
 	"score": score,
 	"action": "ok" if score < threshold else "cta",
@@ -42,7 +50,11 @@ def eval_agegroup3(data, threshold):
     for item in data['survey']:
         if not item:
             continue
-        score = score + option_scores[item["option_id"]]	
+        option_id = item["option_id"]
+        if option_id not in option_scores:
+            print(f"Warning: Invalid option_id {option_id} received, skipping")
+            continue
+        score = score + option_scores[option_id]	
     result={
 	"score": score,
 	"action": "ok" if score < threshold else "cta",

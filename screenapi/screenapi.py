@@ -12,7 +12,7 @@ config = app_config.get_app_config()
 app = Flask(__name__, static_folder='frontend/dist', static_url_path='')
 CORS(app)
 
-# ✅ REMOVE THIS ROUTE to avoid conflict
+# ✅ REMOVE THIS ROUTE when pushing it to render
 # @app.route("/")
 # def hello():
 #     return "<h1 style='color:blue'>API Server for screen app</h1>"
@@ -42,31 +42,40 @@ def get_survey_json(lang_code, age_grp):
 # POST survey answers
 @app.route("/survey", methods=['POST'])
 def eval_survey_answers():
-    data = request.get_json()
-    agegroup = data['age_group']
-    num_responses = len(data["survey"])
-    best_score = num_responses * 1
-    worst_score = num_responses * 5
-    threshold = worst_score * 0.70
+    try:
+        data = request.get_json()
+        agegroup = data['age_group']
+        num_responses = len(data["survey"])
+        best_score = num_responses * 1
+        worst_score = num_responses * 5
+        threshold = worst_score * 0.70
 
-    if agegroup == "age1":
-        result = eval_survey.eval_agegroup1(data, threshold)
-    elif agegroup == "age2":
-        result = eval_survey.eval_agegroup2(data, threshold)
-    elif agegroup == "age3":
-        result = eval_survey.eval_agegroup3(data, threshold)
-    
-    user_msg = eval_survey.get_eval_message(data, result)
-    result["msg"] = user_msg
+        if agegroup == "age1":
+            result = eval_survey.eval_agegroup1(data, threshold)
+        elif agegroup == "age2":
+            result = eval_survey.eval_agegroup2(data, threshold)
+        elif agegroup == "age3":
+            result = eval_survey.eval_agegroup3(data, threshold)
+        else:
+            return jsonify({"error": f"Invalid age group: {agegroup}"}), 400
+        
+        user_msg = eval_survey.get_eval_message(data, result)
+        result["msg"] = user_msg
 
-    save_result = {
-        "user_input": data,
-        "threshold_score": threshold,
-        "result": result
-    }
-    print(f"Saving to S3: {persist.save_results_s3(save_result, config)}")
+        save_result = {
+            "user_input": data,
+            "threshold_score": threshold,
+            "result": result
+        }
+        print(f"Saving to S3: {persist.save_results_s3(save_result, config)}")
 
-    return jsonify(result)
+        return jsonify(result)
+    except KeyError as e:
+        print(f"KeyError in survey evaluation: {e}")
+        return jsonify({"error": f"Missing required field: {e}"}), 400
+    except Exception as e:
+        print(f"Error in survey evaluation: {e}")
+        return jsonify({"error": "Internal server error during survey evaluation"}), 500
 
 # ✅ Serve React app
 @app.route('/', defaults={'path': ''})

@@ -397,7 +397,7 @@ const QuestionnairePage = ({
   loading,
   onSubmit,
 }) => {
-  const options = ["Never", "Sometimes", "Often", "Always"];
+  const options = ["Never", "Sometimes", "Often"];
   const questionRefs = React.useRef([]);
 
   const handleSubmit = async () => {

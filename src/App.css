@@ -125,13 +125,15 @@ body {
 }
 
 .grant-logo {
-  width: 80px;
-  height: 40px;
-  background-color: #f1f5f9;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 40px;
+  height: 24px;
+  background: none;         /* Remove background color for a cleaner look */
+  border-radius: 4px;       /* Slight rounding for modern feel */
+  object-fit: contain;      /* Ensures the logo scales nicely */
+  padding: 2px 0;           /* Subtle vertical padding */
+  box-shadow: none;         /* No shadow for a flat look */
+  display: inline-block;
+  vertical-align: middle;   /* Aligns with text/icons */
 }
 
 .grant-text {
@@ -396,40 +398,45 @@ body {
 
 .options-group {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-@media (min-width: 640px) {
-  .options-group {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  grid-template-columns: repeat(3, 1fr); /* Always 3 columns */
+  gap: 1.25rem;
+  margin-top: 0.5rem;
 }
 
 .radio-option {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
   border-radius: var(--border-radius);
   background-color: #f8fafc;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: box-shadow 0.2s, background 0.2s;
+  border: 2px solid transparent;
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 
-.radio-option:hover {
-  background-color: #f1f5f9;
+.radio-option:hover,
+.radio-option:focus-within {
+  background-color: #e0e7ef;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-color: var(--primary-color, #2563eb);
 }
 
-.radio-option input {
-  width: 1rem;
-  height: 1rem;
-  cursor: pointer;
+.radio-option input[type="radio"]:checked + .radio-text {
+  color: var(--primary-color, #2563eb);
+  font-weight: bold;
+}
+
+.radio-option input[type="radio"]:checked {
+  accent-color: var(--primary-color, #2563eb);
 }
 
 .radio-text {
   flex: 1;
   cursor: pointer;
+  transition: color 0.2s, font-weight 0.2s;
 }
 
 .navigation-buttons {
