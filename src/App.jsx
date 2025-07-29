@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./App.css";
 
 // Configuration
-const API_BASE_URL = "http://127.0.0.1:5000/"; // or just use "" (empty string) if you always append the endpoint
+const API_BASE_URL = ""; // or just use "" (empty string) if you always append the endpoint
 
 const App = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -250,7 +250,7 @@ const App = () => {
         {/* Main Content */}
         <div className="main-content">
           {/* Developer Navigation - Remove in production */}
-          <div className="dev-navigation">
+          {/* <div className="dev-navigation">
             <p>Developer Navigation (Remove in production)</p>
             <div className="dev-nav-buttons">
               <button 
@@ -276,7 +276,7 @@ const App = () => {
                 Step 2: Questionnaire
               </button>
             </div>
-          </div>
+          </div> */}
 
           {error && (
             <div className="error-message">
