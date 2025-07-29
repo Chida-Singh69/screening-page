@@ -12,10 +12,10 @@ config = app_config.get_app_config()
 app = Flask(__name__, static_folder='frontend/dist', static_url_path='')
 CORS(app)
 
-# ✅ REMOVE THIS ROUTE when pushing it to render
-# @app.route("/")
-# def hello():
-#     return "<h1 style='color:blue'>API Server for screen app</h1>"
+#  REMOVE THIS ROUTE when pushing it to render
+@app.route("/")
+def hello():
+    return "<h1 style='color:blue'>API Server for screen app</h1>"
 
 # Fetch and return the right JSON file
 @app.route("/survey/<lang_code>/<age_grp>", methods=['GET'])
@@ -78,13 +78,13 @@ def eval_survey_answers():
         return jsonify({"error": "Internal server error during survey evaluation"}), 500
 
 # ✅ Serve React app
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve_react(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
+# @app.route('/', defaults={'path': ''})
+# @app.route('/<path:path>')
+# def serve_react(path):
+#     if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+#         return send_from_directory(app.static_folder, path)
+#     else:
+#         return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
