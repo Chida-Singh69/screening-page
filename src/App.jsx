@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./App.css";
 
 // Configuration
@@ -51,11 +51,23 @@ const App = () => {
         return;
       }
 
-      // Age is already validated by the select options
-      // Fetch questions from backend
-      await fetchQuestions();
+      // Store current scroll position
+      const currentScrollY = window.scrollY;
+      
+      // First move to step 2, then fetch questions to avoid scroll jumping
+      setCurrentStep(2);
+      
+      // Fetch questions from backend after a small delay to ensure smooth transition
+      setTimeout(async () => {
+        await fetchQuestions();
+        // Restore scroll position after questions load
+        setTimeout(() => {
+          window.scrollTo(0, currentScrollY);
+        }, 0);
+      }, 100);
+    } else {
+      setCurrentStep((prev) => Math.min(prev + 1, 2));
     }
-    setCurrentStep((prev) => Math.min(prev + 1, 3));
   };
 
   const updateFormData = (field, value) => {
@@ -76,43 +88,43 @@ const App = () => {
   };
 
   const fetchQuestions = async () => {
-  setLoading(true);
-  setError("");
+    setLoading(true);
+    setError("");
 
-  try {
-    const ageGroup = getAgeGroup(formData.age);
-    const langCode = formData.language;
+    try {
+      const ageGroup = getAgeGroup(formData.age);
+      const langCode = formData.language;
 
-    console.log(
-      `Fetching questions from ${API_BASE_URL}/survey/${langCode}/${ageGroup}`
-    );
+      console.log(
+        `Fetching questions from ${API_BASE_URL}/survey/${langCode}/${ageGroup}`
+      );
 
-    const response = await fetch(
-      `${API_BASE_URL}/survey/${langCode}/${ageGroup}`
-    );
+      const response = await fetch(
+        `${API_BASE_URL}/survey/${langCode}/${ageGroup}`
+      );
 
-    console.log("Response status:", response.status);
+      console.log("Response status:", response.status);
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch questions: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch questions: ${response.status}`);
+      }
+
+      const questionsData = await response.json();
+      console.log("Raw questionsData:", questionsData);
+
+      // ✅ If your JSON is a direct array, not an object with "questions"
+      setQuestions(
+        Array.isArray(questionsData)
+          ? questionsData
+          : questionsData.questions || []
+      );
+    } catch (err) {
+      console.error("Error fetching questions:", err);
+      setError("Failed to load questions. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    const questionsData = await response.json();
-    console.log("Raw questionsData:", questionsData);
-
-    // ✅ If your JSON is a direct array, not an object with "questions"
-    setQuestions(
-      Array.isArray(questionsData)
-        ? questionsData
-        : questionsData.questions || []
-    );
-  } catch (err) {
-    console.error("Error fetching questions:", err);
-    setError("Failed to load questions. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const submitSurvey = async () => {
     setLoading(true);
@@ -176,7 +188,11 @@ const App = () => {
         <div className="header">
           <div className="header-content">
             <div className="logo-section">
-              <img src="assets/img/giftolexia_logo.png" alt="Giftolexia Logo" className="logo-image" />
+              <img
+                src="assets/img/giftolexia_logo.png"
+                alt="Giftolexia Logo"
+                className="logo-image"
+              />
               <div>
                 <h1>Giftolexia</h1>
                 <p className="tagline">Early Screening Assessment</p>
@@ -233,17 +249,37 @@ const App = () => {
 
         {/* Main Content */}
         <div className="main-content">
+          {/* Developer Navigation - Remove in production */}
+          {/* <div className="dev-navigation">
+            <p>Developer Navigation (Remove in production)</p>
+            <div className="dev-nav-buttons">
+              <button 
+                className={`btn ${currentStep === 1 ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setCurrentStep(1)}
+              >
+                Step 1: Contact Form
+              </button>
+              <button 
+                className={`btn ${currentStep === 2 ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => {
+                  setCurrentStep(2);
+                  // Mock some questions for testing if none exist
+                  if (questions.length === 0) {
+                    setQuestions([
+                      "Does your child have difficulty remembering names?",
+                      "Does your child confuse similar looking letters?",
+                      "Does your child have trouble with rhyming words?"
+                    ]);
+                  }
+                }}
+              >
+                Step 2: Questionnaire
+              </button>
+            </div>
+          </div> */}
+
           {error && (
-            <div
-              className="error-message"
-              style={{
-                backgroundColor: "#fee2e2",
-                color: "#dc2626",
-                padding: "1rem",
-                borderRadius: "0.5rem",
-                marginBottom: "1rem",
-              }}
-            >
+            <div className="error-message">
               {error}
             </div>
           )}
@@ -267,8 +303,6 @@ const App = () => {
               onSubmit={submitSurvey}
             />
           )}
-
-          {currentStep === 3 && <ResultsPage formData={formData} />}
         </div>
       </div>
     </div>
@@ -281,8 +315,13 @@ const ContactForm = ({ formData, updateFormData, onNext, languageMap }) => {
       <div className="welcome-section">
         <h2>Early Screening Checklist</h2>
         <p className="welcome-text">
-          Answer the questions as best as you can. This will help you understand
-          the likelihood of risk and if further support is warranted.
+          Dyslexia is often defined as an unexpected difficulty in reading, for
+          an individual’s chronological age. Other learning challenges like
+          Dyscalculia and Dysgraphia are also prevalent in children of school
+          going age. This results in a substantial gap between a child’s
+          potential and academic performance. Early identification and right
+          remediation are crucial for the academic success of these children.
+         
         </p>
       </div>
 
@@ -359,29 +398,8 @@ const ContactForm = ({ formData, updateFormData, onNext, languageMap }) => {
             </div>
 
             <button className="btn btn-primary btn-large" onClick={onNext}>
-              Start Assessment
+              Start
             </button>
-          </div>
-        </div>
-
-        {/* Right side - Visual/info section */}
-        <div className="info-section">
-          <div className="info-card">
-            <div className="info-icon">*</div>
-            <h3>What to Expect</h3>
-            <ul className="info-list">
-              <li>Quick 5-minute assessment</li>
-              <li>Child-friendly questions</li>
-              <li>Immediate results</li>
-              <li>Professional recommendations</li>
-              <li>Completely confidential</li>
-            </ul>
-
-            <div className="trust-badges">
-              <div className="badge">Secure</div>
-              <div className="badge">Expert Designed</div>
-              <div className="badge">Evidence Based</div>
-            </div>
           </div>
         </div>
       </div>
@@ -400,7 +418,16 @@ const QuestionnairePage = ({
   const options = ["Never", "Sometimes", "Often"];
   const questionRefs = React.useRef([]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event) => {
+    // Prevent any default form submission behavior that might cause scrolling
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    // Store current scroll position to prevent jumping
+    const currentScrollY = window.scrollY;
+    
     // Check if all questions are answered
     const unansweredIndex = questions.findIndex(
       (_, index) => formData.answers[index] === undefined
@@ -410,28 +437,28 @@ const QuestionnairePage = ({
       alert("Please answer all questions before proceeding.");
       // Scroll to the first unanswered question
       if (questionRefs.current[unansweredIndex]) {
-        questionRefs.current[unansweredIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+        questionRefs.current[unansweredIndex].scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
         questionRefs.current[unansweredIndex].focus?.();
       }
       return;
     }
 
     await onSubmit();
-    onNext();
+    
+    // Restore scroll position after results load
+    setTimeout(() => {
+      window.scrollTo(0, currentScrollY);
+    }, 0);
   };
 
   if (loading) {
     return (
       <div className="questionnaire-container">
-        <div
-          className="loading-message"
-          style={{
-            textAlign: "center",
-            padding: "2rem",
-          }}
-        >
-          <div>Loading questions...</div>
-          <div style={{ marginTop: "1rem" }}>Please wait...</div>
+        <div className="loading-message">
+          <div>Please wait</div>
         </div>
       </div>
     );
@@ -440,11 +467,18 @@ const QuestionnairePage = ({
   return (
     <div className="questionnaire-container">
       <div className="questionnaire-header">
-        <h2>Assessment Questions</h2>
+        <h2>Early Screening Checklist</h2>
         <p className="questionnaire-subtitle">
-          Please answer the following questions about{" "}
-          <strong>{formData.name}'s child</strong>. Choose the option that best
-          describes your child's typical behavior.
+          Some general indications are listed below .Please answer all the
+          questions. Choose the option that best describes your child&#39;s
+          typical behaviour. These may be associated with dyslexia or other
+          learning difficulties, if they are unexpected for the child’s age,
+          educational level, or cognitive abilities. If many of these are
+          observed frequently and the child’s score is high , we request you to
+          seek the support of a counsellor.
+           <br />
+          <br />
+          <b>We request you to read about the unique strengths of children with learning challenges.</b>
         </p>
       </div>
 
@@ -453,7 +487,7 @@ const QuestionnairePage = ({
           <div
             key={index}
             className="question-row"
-            ref={el => (questionRefs.current[index] = el)}
+            ref={(el) => (questionRefs.current[index] = el)}
             tabIndex={-1}
           >
             <div className="question-text">
@@ -481,138 +515,113 @@ const QuestionnairePage = ({
       </div>
 
       <div className="navigation-buttons">
-        <button
-          className="btn btn-primary btn-large"
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? "Submitting..." : "View Results"}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const ResultsPage = ({ formData }) => {
-  const result = formData.result || {};
-
-  const getScoreCategory = (score, action) => {
-    if (action === "ok") {
-      return {
-        label: "No Risk Detected",
-        color: "#10B981",
-        description: "Your child shows healthy development patterns.",
-      };
-    } else {
-      return {
-        label: "Needs Attention",
-        color: "#EF4444",
-        description: "We recommend seeking professional guidance.",
-      };
-    }
-  };
-
-  const category = getScoreCategory(result.score, result.action);
-
-  return (
-    <div className="results-container">
-      <div className="results-header">
-        <h2>Assessment Complete</h2>
-        <p className="results-subtitle">
-          Here are the results for <strong>{formData.name}'s child</strong>
-        </p>
+        {!formData.result && !loading ? (
+          <button
+            className="btn btn-primary btn-large"
+            onClick={(event) => handleSubmit(event)}
+            disabled={loading}
+          >
+            View Results
+          </button>
+        ) : loading ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p className="loading-text-primary">Waiting for results...</p>
+            <p className="loading-text-secondary">Please wait while we analyze your responses</p>
+          </div>
+        ) : (
+          // Results displayed right where the button was
+          <div className="results-container">
+            <div className={`results-card ${formData.result.action === "ok" ? "success" : "warning"}`}>
+              <p className={`results-text ${formData.result.action === "ok" ? "success" : "warning"}`}>
+                {formData.result.action === "ok" 
+                  ? "Based on your responses, your child is not at risk. If you have any questions, please contact us."
+                  : "Based on your responses, your child's score is above normal. We recommend that you seek professional guidance. If you have any questions, please contact us."
+                }
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="results-layout">
-        {/* Score Section */}
-        <div className="score-section">
-          <div className="score-card">
-            <div className="score-display">
-              <div
-                className="score-circle"
-                style={{ borderColor: category.color }}
-              >
-                <span
-                  className="score-number"
-                  style={{ color: category.color }}
-                >
-                  {result.score || 0}
-                </span>
-              </div>
-              <div className="score-label" style={{ color: category.color }}>
-                {category.label}
+      {/* Additional Results Information - Only show after results are loaded */}
+      {formData.result && (
+        <div className="additional-results-section">
+          <div className="results-grid">
+            {/* Contact Section */}
+            <div className="info-card">
+              <h3>Contact Us</h3>
+              <p>Want to discuss these results with our specialists?</p>
+              <div className="contact-info">
+                <div className="contact-item">
+                  <span className="contact-label">Email:</span>
+                  <span>info@giftolexia.com</span>
+                </div>
+                <div className="contact-item">
+                  <span className="contact-label">Phone:</span>
+                  <span>91 7406722955</span>
+                </div>
               </div>
             </div>
 
-            <div className="score-description">
-              <p>{category.description}</p>
-              {result.msg && (
-                <div
-                  className="result-message"
-                  style={{
-                    marginTop: "1rem",
-                    padding: "1rem",
-                    backgroundColor:
-                      result.action === "ok" ? "#f0f9ff" : "#fef2f2",
-                    borderRadius: "0.5rem",
-                    border: `1px solid ${
-                      result.action === "ok" ? "#3b82f6" : "#ef4444"
-                    }`,
-                  }}
-                >
-                  {result.msg}
-                </div>
-              )}
+            {/* Next Steps Section */}
+            <div className="info-card">
+              <h3>Next Steps</h3>
+              <div className="next-steps">
+                {formData.result.action === "ok" ? (
+                  <div>
+                    <div className="next-step-item">
+                      <span className="next-step-bullet">•</span>
+                      Continue monitoring your child's development
+                    </div>
+                    <div className="next-step-item">
+                      <span className="next-step-bullet">•</span>
+                      Maintain regular check-ups with your pediatrician
+                    </div>
+                    <div className="next-step-item">
+                      <span className="next-step-bullet">•</span>
+                      Encourage reading and learning activities
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="next-step-item">
+                      <span className="next-step-bullet">•</span>
+                      Consider consulting with a developmental specialist
+                    </div>
+                    <div className="next-step-item">
+                      <span className="next-step-bullet">•</span>
+                      Discuss results with your child's pediatrician
+                    </div>
+                    <div className="next-step-item">
+                      <span className="next-step-bullet">•</span>
+                      Keep track of your child's progress
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Contact Section */}
-        <div className="contact-section">
-          <div className="contact-card">
-            <h3>Contact Us</h3>
-            <p>Want to discuss these results with our specialists?</p>
-            <div className="contact-info">
-              <div className="contact-item">
-                <span className="contact-icon">Email:</span>
-                <span>info@giftolexia.com</span>
-              </div>
-              <div className="contact-item">
-                <span className="contact-icon">Phone:</span>
-                <span>91 7406722955</span>
-              </div>
-            </div>
-            {/* <button className="btn btn-secondary">Schedule Consultation</button> */}
+      {/* Strengths Section */}
+      <div className="strengths-section">
+        <div className="strengths-card">
+          <h3 className="strengths-title">Some Noticeable Strengths</h3>
+          <div className="strengths-list">
+            <p>Curiosity</p>
+            <p>Great imagination</p>
+            <p>Ability to figure things out, gets the gist of things</p>
+            <p>Eager to embrace new ideas</p>
+            <p>A good understanding of new concepts</p>
+            <p>A larger vocabulary than typical for age group</p>
+            <p>Enjoys solving puzzles</p>
+            <p>Talent for building models</p>
+            <p>Good at problem solving</p>
+            <p>Excellent comprehension of stories read or told to him</p>
+            <p>Empathetic to the needs or feelings of others</p>
           </div>
-        </div>
-
-        {/* Additional Information */}
-        <div className="info-section">
-          <div className="info-card">
-            <h3>Next Steps</h3>
-            <div className="next-steps">
-              {result.action === "ok" ? (
-                <div>
-                  <p>Continue monitoring your child's development</p>
-                  <p>Maintain regular check-ups with your pediatrician</p>
-                  <p>Encourage reading and learning activities</p>
-                </div>
-              ) : (
-                <div>
-                  <p>Consider consulting with a developmental specialist</p>
-                  <p>Discuss results with your child's pediatrician</p>
-                  <p>Keep track of your child's progress</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="results-footer">
-        <div className="action-buttons">
-          {/* <button className="btn btn-primary">Download Report</button> */}
-          {/* <button className="btn btn-success">Email Results</button> */}
         </div>
       </div>
     </div>

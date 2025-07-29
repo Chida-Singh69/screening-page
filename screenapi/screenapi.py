@@ -12,7 +12,7 @@ config = app_config.get_app_config()
 app = Flask(__name__, static_folder='frontend/dist', static_url_path='')
 CORS(app)
 
-# ✅ REMOVE THIS ROUTE when pushing it to render
+#  REMOVE THIS ROUTE when pushing it to render
 # @app.route("/")
 # def hello():
 #     return "<h1 style='color:blue'>API Server for screen app</h1>"
